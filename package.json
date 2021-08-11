@@ -1,0 +1,22 @@
+{
+  "name": "mdns",
+  "version": "1.0.0",
+  "description": "Simple library to resolve Multicast-DNS addresses with JS.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Esinko/mDNS.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Esinko/mDNS/issues"
+  },
+  "homepage": "https://github.com/Esinko/mDNS#readme",
+  "dependencies": {
+    "@types/node": "^16.4.13"
+  }
+}
