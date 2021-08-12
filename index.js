@@ -12,9 +12,10 @@ require("./typings/index.typings")
 
 /**
  * Resolve a Multicast-DNS addresses to local IPv4 addresses
- * @param {IPResolvable} mDNSAddress Resolvable address
+ * @param {mDNSAddress} mDNSAddress Resolvable address
  * @param {DNSRecordType} type DNS Record types
  * @param {{ socket_type: udp.SocketType, multicast_ttl: Number, port: Number }} options Optional options
+ * @returns {Promise<IPResolvable>}
  */
 module.exports = async function (mDNSAddress, type, options) {
     if(!options) options = {}

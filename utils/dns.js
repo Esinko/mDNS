@@ -1,7 +1,9 @@
+require("../typings/util.dns.typings")
 module.exports = {
     /**
-     * Encode DNS packets. Note: Expects string as domain name
-     * @param {*} string Domain name
+     * Encode DNS packets. Note: Expects string as domain format
+     * @param {mDNSAddress} string Domain name (in this case the multicast dns address)
+     * @returns {DNSQueryPacket}
      */
     encode: function (string) {
         const buffer = Buffer.alloc(Buffer.byteLength(string) + 2)
