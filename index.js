@@ -44,8 +44,8 @@ module.exports = async function (mDNSAddress, type, options) {
             type: "query",
             questions: [{name: mDNSAddress, type: type || "ANY" }]
         }
-
         socket.send(utils.dns.encode(query.questions[0].name), 0, utils.dns.encode(query.questions[0].name).length, 5353, "224.0.0.251")
+        console.log("Query sent!")
     }) 
 
     socket.bind(options.port || 5353)

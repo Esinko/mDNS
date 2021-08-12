@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Esinko/mDNS#readme",
   "dependencies": {
-    "@types/node": "^16.4.13"
+    "@types/node": "^16.4.13",
+    "multicast-dns": "^7.2.3"
   }
 }
