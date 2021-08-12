@@ -21,7 +21,7 @@ module.exports = async function (mDNSAddress, type, options) {
     if(!options) options = {}
 
     let subscription = null
-    let memberships = {}
+    let memberships = []
 
     const socket = udp.createSocket({
         type: options.socket_type || "udp4",
@@ -34,6 +34,7 @@ module.exports = async function (mDNSAddress, type, options) {
 
     socket.on("message", (message, rinfo) => {
         // TODO: Decoding
+        // TODO: Handle response (resolve & clear subscription interval)
         console.log("Message", message, rinfo)
     })
 
@@ -53,9 +54,10 @@ module.exports = async function (mDNSAddress, type, options) {
             }
             // Subscribe to each interface
             for(const interface of interfaces){
-                if(!memberships[interface]) {
+                if(!memberships.includes(interface)) {
                     try {
                         socket.addMembership("224.0.0.251", interface)
+                        memberships.push(interface)
                     }
                     catch(e){
                         console.warn("Failed to subscribe to", interface)

@@ -7,7 +7,6 @@ module.exports = {
      */
     encode: function (obj) {
         const buffer = []
-        let offset = 0
 
         // --- Header ---
         const Header = {
@@ -27,8 +26,6 @@ module.exports = {
 
         buffer.push(HeaderBuffer) // Push to buffer list
 
-        offset += Header.size // Add header offset
-
         // --- Questions ---
         // Encode each entry
         for(const question of obj.questions){
@@ -36,20 +33,16 @@ module.exports = {
             question.name = question.name.replace(/^\.|\.$/gm, "")
 
             const QuestionBuffer = Buffer.alloc(Buffer.byteLength(question.name) + 2 + 4) // Name + 00 + 0000
-            console.log("Name2", QuestionBuffer.length)
             let InnerOffset = 0
 
             // Name
             for(const part of question.name.split(".")){
-                console.log("V", InnerOffset + 1)
                 const length = QuestionBuffer.write(part, InnerOffset + 1)
                 QuestionBuffer[InnerOffset] = length
                 InnerOffset += length + 1
             }
 
             QuestionBuffer[InnerOffset++] = 0
-            console.log("AFTER NAME", InnerOffset, QuestionBuffer.length)
-            //console.log(InnerOffset, Buffer.byteLength(question.name))
 
             // Settings
             QuestionBuffer.writeUInt16BE(1, InnerOffset)     // Type (A)
@@ -58,6 +51,8 @@ module.exports = {
             // Push
             buffer.push(QuestionBuffer)
         }
+
+        // Join buffers and return it
         return Buffer.concat(buffer)
     }
 }
