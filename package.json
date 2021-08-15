@@ -15,9 +15,5 @@
   "bugs": {
     "url": "https://github.com/Esinko/mDNS/issues"
   },
-  "homepage": "https://github.com/Esinko/mDNS#readme",
-  "dependencies": {
-    "@types/node": "^16.4.13",
-    "multicast-dns": "^7.2.3"
-  }
+  "homepage": "https://github.com/Esinko/mDNS#readme"
 }
