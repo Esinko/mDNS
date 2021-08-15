@@ -1,3 +1,8 @@
+/**
+ * mDNS-resolve
+ * By: @Esinko 15.8.2021
+ * License: Apache 2.0 (See LICENSE)
+ */
 // Dependencies
 const os = require("os")
 const udp = require("dgram")

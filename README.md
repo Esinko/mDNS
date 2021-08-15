@@ -1,5 +1,5 @@
 # mDNS
-Simple Node.Js library that utilizes only native Node.Js modules to resolve Multicast DNS addresses to normal IPV4 or IPv6 addresses.
+Simple Node.Js library that utilizes only native Node.Js modules to resolve Multicast DNS addresses to normal IPv4 or IPv6 addresses.
 
 # Example
 Here is a simple example of how to use this library.
