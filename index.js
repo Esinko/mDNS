@@ -44,7 +44,7 @@ module.exports = async function (mDNSAddress, type, options) {
 
         socket.on("message", (message) => {
             const packet = utils.dns.decode(message)
-            if(packet.header.response === "SUCCESS" && packet.header.answers > 0){
+            if(packet !== null && packet.header.response === "SUCCESS" && packet.header.answers > 0){
                 for(const answer of packet.answers){
                     if(answer.name === mDNSAddress){
                         clearInterval(subscription)

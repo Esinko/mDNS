@@ -190,7 +190,8 @@ module.exports = {
         }
         inBuffer = inBuffer.slice(12)
 
-        //if(Header.type === "query") return null
+        // Ignore queries for now
+        if(Header.type === "query") return null
 
         // --- Question ---
         // Note:    This is often not used,
@@ -207,6 +208,7 @@ module.exports = {
                 class: null
             }
             const decodedQuestionName = this.decodeName(inBuffer)
+            // NOTE: Known bug of name being undefined
             InitialQuestion.name = decodedQuestionName.data
             inBuffer = inBuffer.slice(decodedQuestionName.size) // Slice name
             InitialQuestion.type = this.supportedTypes[inBuffer.readUInt16BE(0)] || "Unknown"
