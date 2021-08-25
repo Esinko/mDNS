@@ -1,4 +1,5 @@
 require("../typings/util.dns.typings")
+
 module.exports = {
     /**
      * DNS packet responses
@@ -105,38 +106,49 @@ module.exports = {
      * @param {number} InnerOffset 
      * @returns {DNSName}
      */
-    decodeName: function (buffer, InnerOffset) {
-        if(!InnerOffset) InnerOffset = 0
-
-        const DataList = []
-        let Length = buffer[InnerOffset++]
-
-        if(Length === 0){
-            ++InnerOffset
-            return "."
-        }
-        if(Length >= 0xc0){
-            const pos = buffer.readUInt16BE(InnerOffset - 1) - 0xc000
-            const txt = this.decodeName(buffer, pos).data
-            InnerOffset += 2
+    decodeName: function (buffer, reference) {
+        // Check for reference as the name
+        if(buffer[0] >= 192){
+            const start = buffer.readUInt16BE(0) - 49152 - 12
+            const txt = this.decodeNameNew(reference.slice(start), reference)
+            txt.size = 2
             return txt
         }
 
-        while(Length){
-            // This is the culprit of hell
-            if(Length >= 0xc0) {
-                const pos = buffer.readUInt16BE(InnerOffset - 1) - 0xc000
-                DataList.push(this.decodeName(buffer, pos).data)
-                ++InnerOffset
-                break
+        let offset = 0
+        let Length = buffer[offset]
+        let skip = []
+        ++offset
+        let name = []
+        for(let i = 0; i < Length; i++){
+            if(skip.includes(i)) {
+                name.push(".")
+                continue
             }
-
-            DataList.push(buffer.toString("utf-8", InnerOffset, InnerOffset + Length))
-            InnerOffset += Length
-            Length = buffer[InnerOffset++]
+            name.push(String.fromCharCode(buffer[offset + i]))
+            if(Length === i + 1){
+                // Can we continue reading more chunks?
+                if(buffer.length > offset + i + 2){
+                    // Is there a second chunk with valid text?
+                    if(/[a-zA-Z0-9-_ ]/.test(String.fromCharCode(buffer[offset + i + 2]))){
+                        // Found second chunk, read it
+                        // We will increase name length and then skip the index where the chunk length is defined
+                        Length += buffer[offset + i + 1] + 1
+                        skip.push(i + 1)
+                    }else if(buffer[offset + i + 1] >= 192){ // Does the name end with a reference?
+                        // Find the start of the reference
+                        const start = buffer.readUInt16BE(offset + i + 1) - 49152 - 12
+                        // Get the reference text data (recursion)
+                        const txt = this.decodeNameNew(reference.slice(start), reference)
+                        name.push("." + txt.data)
+                        ++offset
+                    }
+                }
+            }
         }
-
-        return { data: DataList.join("."), size: InnerOffset }
+        offset += Length + 1
+        name = name.join("")
+        return { data: name, size: offset }
     },
 
     /**
@@ -199,16 +211,14 @@ module.exports = {
         //          because this might appear in an answer
         //          (and needs to be sliced off to read the answer).
         const Questions = []
-
-        // TODO: This sometimes causes a loop, issue tracks to name decoding
+        const QuestionReference = inBuffer.slice(0)
         for(let i = 0; i < Header.questions; i++){
             const InitialQuestion = {
                 name: null,
                 type: null,
                 class: null
             }
-            const decodedQuestionName = this.decodeName(inBuffer)
-            // NOTE: Known bug of name being undefined
+            const decodedQuestionName = this.decodeName(inBuffer, QuestionReference)
             InitialQuestion.name = decodedQuestionName.data
             inBuffer = inBuffer.slice(decodedQuestionName.size) // Slice name
             InitialQuestion.type = this.supportedTypes[inBuffer.readUInt16BE(0)] || "Unknown"
@@ -219,7 +229,6 @@ module.exports = {
 
         // --- Answer ---
         const Answers = []
-
         for(let i = 0; i < Header.answers; i++){
             const InitialAnswer = {
                 name: null,
@@ -229,12 +238,14 @@ module.exports = {
                 flush: null,
                 data: null
             }
-    
-            const decodedAnswerName = this.decodeName(inBuffer)
+            
+            // Decode the name
+            const decodedAnswerName = this.decodeName(inBuffer, QuestionReference)
             InitialAnswer.name = decodedAnswerName.data
             inBuffer = inBuffer.slice(decodedAnswerName.size) // Slice raw name data
             InitialAnswer.type = this.supportedTypes[inBuffer.readUInt16BE(0)]
     
+            // Decode according to answer type
             if(!InitialAnswer.type) InitialAnswer.type = "Unknown"
             if(InitialAnswer.type !== "Unknown"){
                 const tClass = inBuffer.readUInt16BE(2)
@@ -275,12 +286,11 @@ module.exports = {
         // After this, there are the authorities and additionals,
         // which we will not handle, as they are not required
         // for the purposes of this library
-
+        
         return {
             header: Header,
             questions: Questions,
             answers: Answers
         }
-        
     }
 }

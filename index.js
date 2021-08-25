@@ -42,21 +42,25 @@ module.exports = async function (mDNSAddress, type, options) {
             reuseAddr: true
         })
 
+        // Listen for messages
         socket.on("message", (message) => {
-            const packet = utils.dns.decode(message)
-            if(packet !== null && packet.header.response === "SUCCESS" && packet.header.answers > 0){
-                for(const answer of packet.answers){
-                    if(answer.name === mDNSAddress){
-                        clearInterval(subscription)
-                        clearTimeout(timeout)
-                        socket.close(() => {
-                            if(!finalized) resolve(answer.data)
-                            finalized = true
-                        })
-                        break
+            try {
+                const packet = utils.dns.decode(message)
+                if(packet !== null && packet.header.response === "SUCCESS" && packet.header.answers > 0){
+                    for(const answer of packet.answers){
+                        if(answer.name === mDNSAddress){
+                            clearInterval(subscription)
+                            clearTimeout(timeout)
+                            socket.close(() => {
+                                if(!finalized) resolve(answer.data)
+                                finalized = true
+                            })
+                            break
+                        }
                     }
                 }
             }
+            catch(e){}
         })
 
         socket.on("listening", () => {
@@ -125,3 +129,5 @@ module.exports = async function (mDNSAddress, type, options) {
         socket.bind(options.port || 5353, "0.0.0.0")
     })
 }
+// Export utilities
+module.exports.utils = utils
